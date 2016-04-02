@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>TwoPaneJSTest</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="normalize.css">
+    <link rel="stylesheet" href="main.css">
+    <style type="text/css">
+
+      #pane2wrap {
+        margin-left:100px;
+        padding-left:50px;
+      }
+
+      .TwoPaneJSContent {
+        position:relative;
+        width:inherit;
+        height:inherit;
+      }
+
+      .TwoPaneJSDivider  {
+        position:absolute;
+        z-index:4;
+        background:white;
+        opacity: .5;
+        width:10px;
+        height:inherit;
+        cursor:ew-resize;
+      }
+
+      .TwoPaneJSPane  {
+        position:absolute;
+        top:0px;
+        overflow:hidden;
+      }
+
+      .TwoPaneJSPane1  {
+        z-index:2;
+        left:0px;
+      }
+
+      .TwoPaneJSPane2  {
+        z-index:3;
+        right:0px;
+      }
+
+    </style>
+  </head>
+  <body>
+
+    <h1>TwoPaneJS Test</h1>
+    <div id="pane2wrap">
+      <div class="TwoPaneJS">
+        <div class="TwoPaneJSDivider"></div>
+        <div class="TwoPaneJSContent">
+          <div class="TwoPaneJSPane TwoPaneJSPane1"><img src="3280152297_25f8dc6179_z_lo.jpg" /></div>
+          <div class="TwoPaneJSPane TwoPaneJSPane2"><img src="3280152297_25f8dc6179_z_hi.jpg" /></div>
+        </div>
+      </div>
+    </div>
+
+    <p>Photo credit: <a href="https://www.flickr.com/photos/torek/3280152297/">kirainet</a> via <a href="https://visualhunt.com/">Visual hunt</a> / <a href="http://creativecommons.org/licenses/by-nd/2.0/">CC BY-ND</a></p>
+
+    <script src="https://code.jquery.com/jquery-2.2.2.min.js"></script>
+    <script>window.jQuery || document.write('<script src="jquery-2.2.2.min.js"><\/script>')</script>
+    <script>
+
+      function dividerOnMouseDown(e)  {
+        e.preventDefault(); //  stop browser from trying to interpret this click and drag as a text selection
+        $(this).data({'isDragging':true});
+        $(window).on('mousemove',globalOnMouseMove)
+        $(window).on('mouseup',globalOnMouseUp);
+      }
+
+      function globalOnMouseMove(e) {
+          //  make the math happen
+        var mousePos = e.pageX;
+        var elementPos = $('.TwoPaneJSContent').offset().left;
+        var elementMousePos = mousePos - elementPos;
+        var lowBound = 0;
+        var highBound = $('.TwoPaneJSContent').width() - $('.TwoPaneJSDivider').width();
+        var dividerPos = Math.min(Math.max(elementMousePos,lowBound),highBound);
+
+        $('.TwoPaneJSDivider').css({'margin-left':dividerPos});
+      }
+
+      function globalOnMouseUp(e) {
+        $('.TwoPaneJSDivider').data({'isDragging':false})
+        $(this).off('mouseup',globalOnMouseUp).off('mousemove',globalOnMouseMove);
+      }
+
+      $(function(){
+        $('.TwoPaneJS').width($('.TwoPaneJSContent>*').width());
+        $('.TwoPaneJS').height($('.TwoPaneJSContent>*').height());
+        $('.TwoPaneJSDivider')
+          .css({'margin-left':(parseInt($('.TwoPaneJSContent').width()/2) - ($('.TwoPaneJSDivider').width()/2))})
+          .data({'isDragging':false})
+          .on('mousedown',dividerOnMouseDown);
+      })
+    </script>
+  </body>
+</html>
