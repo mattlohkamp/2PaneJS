@@ -81,22 +81,32 @@
         var lowBound = 0;
         var highBound = $('.TwoPaneJSContent').width() - $('.TwoPaneJSDivider').width();
         var dividerPos = Math.min(Math.max(elementMousePos,lowBound),highBound);
-
-        $('.TwoPaneJSDivider').css({'margin-left':dividerPos});
+        
+        setState(dividerPos);
       }
 
       function globalOnMouseUp(e) {
         $('.TwoPaneJSDivider').data({'isDragging':false})
         $(this).off('mouseup',globalOnMouseUp).off('mousemove',globalOnMouseMove);
       }
+        
+      function setState(dividerPos){
+        var rightSize = $('.TwoPaneJSContent').width() - dividerPos;
+        var leftSize = $('.TwoPaneJSContent').width() - leftSize;
+
+        $('.TwoPaneJSDivider').css({'margin-left':dividerPos});
+        $('.TwoPaneJSPane1').css({'width':leftSize});
+        $('.TwoPaneJSPane2').css({'width':rightSize,'margin-left':dividerPos}).children().css({'margin-left':-dividerPos});
+      }
 
       $(function(){
-        $('.TwoPaneJS').width($('.TwoPaneJSContent>*').width());
-        $('.TwoPaneJS').height($('.TwoPaneJSContent>*').height());
+        $('.TwoPaneJS').width($('.TwoPaneJSPane').width());
+        $('.TwoPaneJS').height($('.TwoPaneJSPane').height());
         $('.TwoPaneJSDivider')
           .css({'margin-left':(parseInt($('.TwoPaneJSContent').width()/2) - ($('.TwoPaneJSDivider').width()/2))})
           .data({'isDragging':false})
           .on('mousedown',dividerOnMouseDown);
+        setState( $('.TwoPaneJS').width()/2);
       })
     </script>
   </body>
