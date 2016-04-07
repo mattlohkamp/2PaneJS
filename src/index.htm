@@ -58,6 +58,7 @@
           <div class="TwoPaneJSPane TwoPaneJSPane2"><img src="3280152297_25f8dc6179_z_hi.jpg" /></div>
         </div>
       </div>
+        <label><span>Zoom:</span><input id="zoomSlider" type="range" value="1" min="1" max="2" step=".01" /></label>
     </div>
 
     <p>Photo credit: <a href="https://www.flickr.com/photos/torek/3280152297/">kirainet</a> via <a href="https://visualhunt.com/">Visual hunt</a> / <a href="http://creativecommons.org/licenses/by-nd/2.0/">CC BY-ND</a></p>
@@ -98,8 +99,20 @@
         $('.TwoPaneJSPane1').css({'width':leftSize});
         $('.TwoPaneJSPane2').css({'width':rightSize,'margin-left':dividerPos}).children().css({'margin-left':-dividerPos});
       }
+        
+        function sliderOnChange(e)  {
+            zoomTo(e.target.value);
+        }
+        
+        function zoomTo(scalePercent)  {
+            if(scalePercent != $('#TwoPaneJS').data('zoom')){ //  then the zoom value has changed
+                var cssTransformValue = 'scale('+scalePercent+', '+scalePercent+')';
+                $('.TwoPaneJSPane>*').css({'transform':cssTransformValue});
+            }
+        }
 
       $(function(){
+            //  drag2compare
         $('.TwoPaneJS').width($('.TwoPaneJSPane').width());
         $('.TwoPaneJS').height($('.TwoPaneJSPane').height());
         $('.TwoPaneJSDivider')
@@ -107,6 +120,10 @@
           .data({'isDragging':false})
           .on('mousedown',dividerOnMouseDown);
         setState( $('.TwoPaneJS').width()/2);
+          
+            //  slide2zoom
+          
+          $('#zoomSlider').on('change input', sliderOnChange);
       })
     </script>
   </body>
