@@ -1,0 +1,52 @@
+<html>
+  <head>
+    <style>
+      #outer  {
+        width:640px;
+        height:450px;
+        background:red;
+      }
+      #inner  {
+        position:relative;
+        width:inherit;
+        height:inherit;
+        overflow:hidden;
+        background:orange;
+      }
+      #content  {
+        position:absolute;
+        top:0px;
+        left:0px;
+
+        background:yellow;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="outer">
+      <div id="inner">
+        <img id="content" src="3280152297_25f8dc6179_z_hi.jpg" />
+      </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-2.2.2.min.js"></script>
+    <script>window.jQuery || document.write('<script src="jquery-2.2.2.min.js"><\/script>')</script>
+    <script>
+      var scale = 2;
+      $(function(){
+        $('#content').css({
+          'transform':'scale('+scale+','+scale+')',
+          /*
+            //  top left
+          'left':Math.floor((($('#content').width() * scale) - $('#inner').width()) / 2),
+          'top':Math.floor((($('#content').height() * scale) - $('#inner').height()) / 2)
+          */
+          /*
+            //  bottom right
+          'left':Math.floor((($('#content').width() * scale) - $('#inner').width()) / 2) * -1,
+          'top':Math.floor((($('#content').height() * scale) - $('#inner').height()) / 2) * -1
+        */
+        });
+      });
+    </script>
+  </body>
+</html>

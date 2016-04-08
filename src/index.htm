@@ -17,6 +17,11 @@
         position:relative;
         width:inherit;
         height:inherit;
+        cursor:grab;
+      }
+
+      .TwoPaneJSContent.panning  {
+        cursor:grabbing;
       }
 
       .TwoPaneJSDivider  {
@@ -45,11 +50,16 @@
         right:0px;
       }
 
+      .TwoPaneJSPane>*  {
+        position:absolute;
+      }
+
     </style>
   </head>
   <body>
 
     <h1>TwoPaneJS Test</h1>
+
     <div id="pane2wrap">
       <div class="TwoPaneJS">
         <div class="TwoPaneJSDivider"></div>
@@ -58,7 +68,7 @@
           <div class="TwoPaneJSPane TwoPaneJSPane2"><img src="3280152297_25f8dc6179_z_hi.jpg" /></div>
         </div>
       </div>
-        <label><span>Zoom:</span><input id="zoomSlider" type="range" value="1" min="1" max="2" step=".01" /></label>
+        <label><span>Zoom:</span><input id="zoomSlider" type="range" value="2" min="1" max="3" step=".01" /></label>
     </div>
 
     <p>Photo credit: <a href="https://www.flickr.com/photos/torek/3280152297/">kirainet</a> via <a href="https://visualhunt.com/">Visual hunt</a> / <a href="http://creativecommons.org/licenses/by-nd/2.0/">CC BY-ND</a></p>
@@ -69,29 +79,90 @@
 
       function dividerOnMouseDown(e)  {
         e.preventDefault(); //  stop browser from trying to interpret this click and drag as a text selection
-        $(this).data({'isDragging':true});
+        $('.TwoPaneJSDivider').addClass('dragging');
         $(window).on('mousemove',globalOnMouseMove)
         $(window).on('mouseup',globalOnMouseUp);
+        return false;
+      }
+
+      function contentPaneOnMouseDown(e)  {
+        e.preventDefault(); //  stoppit browser
+        $('.TwoPaneJSContent').addClass('panning').data('grabOffset',{
+          /*
+          'x':parseInt(e.pageX - ($('.TwoPaneJSContent').offset().left * $('#zoomSlider')[0].value)),
+          'y':parseInt(e.pageY - ($('.TwoPaneJSContent').offset().top * $('#zoomSlider')[0].value))
+          */
+          'x':e.pageX - parseInt($('.TwoPaneJSPane>*').css('left')),
+          'y':e.pageY - parseInt($('.TwoPaneJSPane>*').css('top'))
+        });
+        $(window).on('mousemove',globalOnMouseMove)
+        $(window).on('mouseup',globalOnMouseUp);
+        return false;
       }
 
       function globalOnMouseMove(e) {
+
           //  make the math happen
-        var mousePos = e.pageX;
-        var elementPos = $('.TwoPaneJSContent').offset().left;
-        var elementMousePos = mousePos - elementPos;
+
+        if($('.TwoPaneJSDivider').hasClass('dragging')){  //  if the divider is dragging
+          setDivider(getPaneCoordsFromMouse(e.pageX));
+        }else if($('.TwoPaneJSContent').hasClass('panning')){ //  if the content is panning
+          var panCoords = getPanCoordsFromMouse(e.pageX, e.pageY);
+          setContentPan(panCoords.x,panCoords.y);
+        }
+      }
+
+      function getPaneCoordsFromMouse(mousePageX) {
+        var containerOffset = $('.TwoPaneJSContent').offset().left;
+        var containerMousPos = parseInt(mousePageX - containerOffset);
         var lowBound = 0;
         var highBound = $('.TwoPaneJSContent').width() - $('.TwoPaneJSDivider').width();
-        var dividerPos = Math.min(Math.max(elementMousePos,lowBound),highBound);
-        
-        setState(dividerPos);
+        var dividerPos = Math.min(Math.max(containerMousPos,lowBound),highBound);
+
+        return dividerPos;
+      }
+
+      function getPanCoordsFromMouse(mousePageX,mousePageY)  {
+
+          //  taking stock
+
+        var contWidth = $('.TwoPaneJSContent').width()
+        var contHeight = $('.TwoPaneJSContent').height();
+
+        var contentScaledWidth = $('.TwoPaneJSPane').width() * $('#zoomSlider')[0].value;
+        var contentScaledHeight = $('.TwoPaneJSPane').height() * $('#zoomSlider')[0].value;
+
+          //  go cardinals
+
+        var nBound = Math.floor((contHeight - contentScaledHeight) / 2);
+        var sBound = -nBound;
+
+        var wBound = Math.floor((contWidth - contentScaledWidth) / 2);
+        var eBound = -wBound;
+
+          //  if you give a mouse an offset
+
+        var contMouseX = mousePageX - $('.TwoPaneJSContent').data('grabOffset').x;
+        var contMouseY = mousePageY - $('.TwoPaneJSContent').data('grabOffset').y;
+
+        var xOffset = Math.max(Math.min(contMouseX,eBound),wBound);
+        var yOffset = Math.max(Math.min(contMouseY,sBound),nBound);
+
+        return {
+          'x':xOffset,
+          'y':yOffset
+        }
       }
 
       function globalOnMouseUp(e) {
-        $('.TwoPaneJSDivider').data({'isDragging':false})
+
+        $('.TwoPaneJSDivider').removeClass('dragging');
+        $('.TwoPaneJSContent').removeClass('panning');
+
         $(this).off('mouseup',globalOnMouseUp).off('mousemove',globalOnMouseMove);
       }
-        
-      function setState(dividerPos){
+
+      function setDivider(dividerPos){
         var rightSize = $('.TwoPaneJSContent').width() - dividerPos;
         var leftSize = $('.TwoPaneJSContent').width() - leftSize;
 
@@ -99,31 +170,39 @@
         $('.TwoPaneJSPane1').css({'width':leftSize});
         $('.TwoPaneJSPane2').css({'width':rightSize,'margin-left':dividerPos}).children().css({'margin-left':-dividerPos});
       }
-        
-        function sliderOnChange(e)  {
-            zoomTo(e.target.value);
-        }
-        
-        function zoomTo(scalePercent)  {
-            if(scalePercent != $('#TwoPaneJS').data('zoom')){ //  then the zoom value has changed
-                var cssTransformValue = 'scale('+scalePercent+', '+scalePercent+')';
-                $('.TwoPaneJSPane>*').css({'transform':cssTransformValue});
-            }
-        }
+
+      function sliderOnChange(e)  { zoomTo(e.target.value); }
+
+      function zoomTo(scaleFactor)  {
+        $('.TwoPaneJSPane>*').css({'transform':'scale('+scaleFactor+', '+scaleFactor+')'});
+        setContentPan(parseInt($('.TwoPaneJSPane>*').css('left')),parseInt($('.TwoPaneJSPane>*').css('top')));
+      }
+
+      function setContentPan(left, top) { $('.TwoPaneJSPane>*').css({'left':left, 'top':top});  }
 
       $(function(){
+
+            //  size2start
+
+        $('.TwoPaneJS,.TwoPaneJSPane').width($('.TwoPaneJSPane>*').width());
+        $('.TwoPaneJS,.TwoPaneJSPane').height($('.TwoPaneJSPane>*').height());
+
             //  drag2compare
-        $('.TwoPaneJS').width($('.TwoPaneJSPane').width());
-        $('.TwoPaneJS').height($('.TwoPaneJSPane').height());
+
         $('.TwoPaneJSDivider')
           .css({'margin-left':(parseInt($('.TwoPaneJSContent').width()/2) - ($('.TwoPaneJSDivider').width()/2))})
           .data({'isDragging':false})
           .on('mousedown',dividerOnMouseDown);
-        setState( $('.TwoPaneJS').width()/2);
-          
+        setDivider($('.TwoPaneJS').width()/2);
+
             //  slide2zoom
-          
+
           $('#zoomSlider').on('change input', sliderOnChange);
+          zoomTo($('#zoomSlider')[0].value);
+
+            //  drag2pan
+
+          $('.TwoPaneJSPane').on('mousedown', contentPaneOnMouseDown);
       })
     </script>
   </body>
