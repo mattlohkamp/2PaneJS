@@ -9,8 +9,7 @@
     <style type="text/css">
 
       #pane2wrap {
-        margin-left:100px;
-        padding-left:50px;
+        padding-left:1em;
       }
 
       .TwoPaneJSContent {
@@ -27,7 +26,7 @@
       .TwoPaneJSDivider  {
         position:absolute;
         z-index:4;
-        background:white;
+        background:#111111;
         opacity: .5;
         width:10px;
         height:inherit;
@@ -54,6 +53,15 @@
         position:absolute;
       }
 
+			.TwoPaneJSSlider	{
+				display:block;
+				clear:both;
+			}
+
+			#zoomSlider	{
+				position:absolute;
+			}
+
     </style>
   </head>
   <body>
@@ -64,14 +72,23 @@
       <div class="TwoPaneJS">
         <div class="TwoPaneJSDivider"></div>
         <div class="TwoPaneJSContent">
+<!--
           <div class="TwoPaneJSPane TwoPaneJSPane1"><img src="3280152297_25f8dc6179_z_lo.jpg" /></div>
           <div class="TwoPaneJSPane TwoPaneJSPane2"><img src="3280152297_25f8dc6179_z_hi.jpg" /></div>
+
+					<div class="TwoPaneJSPane TwoPaneJSPane1"><span style="font-family:monospace;display:block;font-size:40pt;background:white;width:420px;">JACKDAWS LOVE<br />MY BIG SPHINX<br />OF QUARTZ</span></div>
+					<div class="TwoPaneJSPane TwoPaneJSPane2"><span style="font-family:monospace;display:block;font-size:40pt;background:white;width:420px;">jackdaws love<br />my big sphinx<br />of quartz</span></div>
+-->
+					<div class="TwoPaneJSPane TwoPaneJSPane1"><video src="big_buck_bunny_480p_surround-fix-lo.mp4" autoplay loop muted /></div>
+          <div class="TwoPaneJSPane TwoPaneJSPane2"><video src="big_buck_bunny_480p_surround-fix-hi.mp4" autoplay loop muted /></div>
         </div>
       </div>
-        <label><span>Zoom:</span><input id="zoomSlider" type="range" value="2" min="1" max="3" step=".01" /></label>
+      <div class="TwoPaneJSSlider"><label><span>Zoom:</span><input id="zoomSlider" type="range" value="1" min="1" max="3" step=".01" /></label></div>
     </div>
 
     <p>Photo credit: <a href="https://www.flickr.com/photos/torek/3280152297/">kirainet</a> via <a href="https://visualhunt.com/">Visual hunt</a> / <a href="http://creativecommons.org/licenses/by-nd/2.0/">CC BY-ND</a></p>
+
+		<p>Video credit: &copy; 2008, Blender Foundation / <a href="https://bigbuckbunny.org">www.bigbuckbunny.org</a></p>
 
     <script src="https://code.jquery.com/jquery-2.2.2.min.js"></script>
     <script>window.jQuery || document.write('<script src="jquery-2.2.2.min.js"><\/script>')</script>
@@ -88,10 +105,6 @@
       function contentPaneOnMouseDown(e)  {
         e.preventDefault(); //  stoppit browser
         $('.TwoPaneJSContent').addClass('panning').data('grabOffset',{
-          /*
-          'x':parseInt(e.pageX - ($('.TwoPaneJSContent').offset().left * $('#zoomSlider')[0].value)),
-          'y':parseInt(e.pageY - ($('.TwoPaneJSContent').offset().top * $('#zoomSlider')[0].value))
-          */
           'x':e.pageX - parseInt($('.TwoPaneJSPane>*').css('left')),
           'y':e.pageY - parseInt($('.TwoPaneJSPane>*').css('top'))
         });
@@ -122,35 +135,48 @@
         return dividerPos;
       }
 
+			function validatePanCoords(x,y)	{
+
+					//	taking stock
+
+				var contWidth = $('.TwoPaneJSContent').width()
+				var contHeight = $('.TwoPaneJSContent').height();
+
+				var contentScaledWidth = $('.TwoPaneJSPane').width() * $('#zoomSlider')[0].value;
+				var contentScaledHeight = $('.TwoPaneJSPane').height() * $('#zoomSlider')[0].value;
+
+					//  go cardinals
+
+				var nBound = Math.floor((contHeight - contentScaledHeight) / 2);
+				var sBound = -nBound;
+
+				var wBound = Math.floor((contWidth - contentScaledWidth) / 2);
+				var eBound = -wBound;
+
+					//	within the bounds of reason
+
+				return {
+          'x':Math.max(Math.min(x,eBound),wBound),
+          'y':Math.max(Math.min(y,sBound),nBound)
+        }
+			}
+
       function getPanCoordsFromMouse(mousePageX,mousePageY)  {
-
-          //  taking stock
-
-        var contWidth = $('.TwoPaneJSContent').width()
-        var contHeight = $('.TwoPaneJSContent').height();
-
-        var contentScaledWidth = $('.TwoPaneJSPane').width() * $('#zoomSlider')[0].value;
-        var contentScaledHeight = $('.TwoPaneJSPane').height() * $('#zoomSlider')[0].value;
-
-          //  go cardinals
-
-        var nBound = Math.floor((contHeight - contentScaledHeight) / 2);
-        var sBound = -nBound;
-
-        var wBound = Math.floor((contWidth - contentScaledWidth) / 2);
-        var eBound = -wBound;
 
           //  if you give a mouse an offset
 
         var contMouseX = mousePageX - $('.TwoPaneJSContent').data('grabOffset').x;
         var contMouseY = mousePageY - $('.TwoPaneJSContent').data('grabOffset').y;
 
-        var xOffset = Math.max(Math.min(contMouseX,eBound),wBound);
-        var yOffset = Math.max(Math.min(contMouseY,sBound),nBound);
+					//	external validation
+
+				var validCoords = validatePanCoords(contMouseX, contMouseY);
+
+					//	and ultimately gratification
 
         return {
-          'x':xOffset,
-          'y':yOffset
+          'x':validCoords.x,
+          'y':validCoords.y
         }
       }
 
@@ -171,11 +197,12 @@
         $('.TwoPaneJSPane2').css({'width':rightSize,'margin-left':dividerPos}).children().css({'margin-left':-dividerPos});
       }
 
-      function sliderOnChange(e)  { zoomTo(e.target.value); }
+      function sliderOnChange(e)  { zoomTo(e.target.value,true); }
 
-      function zoomTo(scaleFactor)  {
+      function zoomTo(scaleFactor,andPan)  {
         $('.TwoPaneJSPane>*').css({'transform':'scale('+scaleFactor+', '+scaleFactor+')'});
-        setContentPan(parseInt($('.TwoPaneJSPane>*').css('left')),parseInt($('.TwoPaneJSPane>*').css('top')));
+				var validCoords = validatePanCoords(parseInt($('.TwoPaneJSPane>*').css('left')), parseInt($('.TwoPaneJSPane>*').css('top')));
+				setContentPan(validCoords.x,validCoords.y);
       }
 
       function setContentPan(left, top) { $('.TwoPaneJSPane>*').css({'left':left, 'top':top});  }
@@ -198,7 +225,7 @@
             //  slide2zoom
 
           $('#zoomSlider').on('change input', sliderOnChange);
-          zoomTo($('#zoomSlider')[0].value);
+          zoomTo($('#zoomSlider')[0].value,false);
 
             //  drag2pan
 
