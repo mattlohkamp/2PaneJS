@@ -1,0 +1,42 @@
+/*  base css for TwoPaneJS  */
+
+.TwoPaneJSContent {
+    position: relative;
+    width: inherit;
+    height: inherit;
+    cursor: grab;
+}
+
+.TwoPaneJSContent.panning {
+    cursor: grabbing;
+}
+
+.TwoPaneJSDivider {
+    position: absolute;
+    z-index: 4;
+    background: #111111;
+    opacity: .5;
+    width: 10px;
+    height: inherit;
+    cursor: ew-resize;
+}
+
+.TwoPaneJSPane {
+    position: absolute;
+    top: 0px;
+    overflow: hidden;
+}
+
+.TwoPaneJSPane1 {
+    z-index: 2;
+    left: 0px;
+}
+
+.TwoPaneJSPane2 {
+    z-index: 3;
+    right: 0px;
+}
+
+.TwoPaneJSPane>* {
+    position: absolute;
+}

@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+  <head>
+      <meta charset="utf-8">
+      <title>TwoPaneJSTest</title>
+      <link rel="stylesheet" href="twopane.css">
+  </head>
+  <body>
+      <div id="pane2wrap">
+        <div class="TwoPaneJS" id="TwoPaneJSVideo">
+          <div class="TwoPaneJSDivider"></div>
+          <div class="TwoPaneJSContent">
+            <div class="TwoPaneJSPane TwoPaneJSPane1"><video src="big_buck_bunny_480p_surround-fix-lo.mp4" autoplay loop muted /></div>
+            <div class="TwoPaneJSPane TwoPaneJSPane2"><video src="big_buck_bunny_480p_surround-fix-hi.mp4" autoplay loop muted /></div>
+          </div>
+        </div>
+      </div>
+      <script src="https://code.jquery.com/jquery-2.2.2.min.js"></script>
+      <script>window.jQuery || document.write('<script src="jquery-2.2.2.min.js"><\/script>')</script>
+      <script src="jquery.twopane.js"></script>
+      <script>
+        $().TwoPane('#TwoPaneJSVideo');
+      </script>
+  </body>
+</html>
